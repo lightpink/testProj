@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>按摩券挑戰：通關才能享受放鬆！</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      text-align: center;
+      background: linear-gradient(to bottom, #fff3e0, #ffe0b2);
+      color: #333;
+      margin: 0;
+      padding: 1.5em 1em;
+    }
+    #game-container {
+      max-width: 480px;
+      margin: auto;
+      background: #ffffffcc;
+      padding: 1.5em;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      transition: all 0.5s ease-in-out;
+    }
+    h1 {
+      font-size: 1.8em;
+      color: #e65100;
+    }
+    .bless {
+      font-size: 1.4em;
+      color: #6d4c41;
+      margin-bottom: 0.8em;
+    }
+    .btn {
+      padding: 1em;
+      margin: 0.5em;
+      font-size: 1.2em;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff9800, #ff5722);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 300px;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    #gift-link {
+      margin-top: 2em;
+      display: none;
+      animation: fadeIn 1s ease-in-out;
+    }
+    #celebration {
+      display: none;
+      font-size: 2em;
+      color: #d84315;
+      animation: popFade 2s ease-in-out;
+    }
+    #countdown {
+      font-size: 2em;
+      color: #d84315;
+      margin: 1em 0;
+      font-weight: bold;
+    }
+    button.answer-btn {
+      margin: 0.3em;
+      padding: 0.8em;
+      font-size: 1em;
+      background: #4caf50;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      width: 40%;
+      max-width: 150px;
+      transition: transform 0.1s ease-in-out;
+    }
+    button.answer-btn:active {
+      transform: scale(0.95);
+    }
+    button.answer-btn:hover {
+      background: #43a047;
+    }
+    #user-progress {
+      margin-top: 1em;
+      font-size: 1.1em;
+      color: #5d4037;
+      font-weight: bold;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popFade {
+      0% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div class="bless">梯仔森咖\OAO/</div>
+    <h1>🎁 通關才有驚喜按摩券！</h1>
+    <p>共 10 關記憶挑戰，難度逐關提升！</p>
+    <button class="btn" onclick="startGame()">🔘 開始挑戰</button>
+
+    <div id="game-area"></div>
+    <div id="user-progress"></div>
+    <div id="celebration">🎉 你成功啦！🎉</div>
+
+    <div id="gift-link">
+      <h2>🎉 恭喜你完成所有挑戰！</h2>
+      <p>辛苦啦，該放鬆一下了～</p>
+      <a href="https://apps.apple.com/app/id431218690" target="_blank" class="btn">🎟 領取按摩券</a>
+    </div>
+    <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/10/03/audio_6d97f2e91c.mp3?filename=relaxing-massage-ambient-117039.mp3" autoplay loop></audio>
+    <audio id="click-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3404ba8a03.mp3?filename=click-124467.mp3"></audio>
+    <audio id="success-sound" src="https://cdn.pixabay.com/download/audio/2021/10/20/audio_47f5adf97e.mp3?filename=success-1-6297.mp3"></audio>
+    <audio id="fail-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_bf69ee9f42.mp3?filename=wrong-126507.mp3"></audio>
+  </div>
+
+  <script>
+    const parts = ['頭', '肩', '腰', '腳', '手', '背', '眼', '膝', '脖子', '腿'];
+    let level = 1;
+    let pattern = [];
+    let userSequence = [];
+
+    const clickSound = document.getElementById('click-sound');
+    const successSound = document.getElementById('success-sound');
+    const failSound = document.getElementById('fail-sound');
+
+    function startGame() {
+      level = 1;
+      nextLevel();
+    }
+
+    function nextLevel() {
+      userSequence = [];
+      pattern = [];
+      for (let i = 0; i < level + 1; i++) {
+        pattern.push(parts[Math.floor(Math.random() * parts.length)]);
+      }
+      showPatternWithCountdown();
+    }
+
+    function showPatternWithCountdown() {
+      const gameArea = document.getElementById('game-area');
+      const userProgress = document.getElementById('user-progress');
+      userProgress.innerText = '';
+      document.getElementById('gift-link').style.display = 'none';
+      document.getElementById('celebration').style.display = 'none';
+      let countdown = 5;
+      gameArea.innerHTML = `
+        <h3>請記住順序</h3>
+        <p id="pattern-display"><strong>${pattern.join(' → ')}</strong></p>
+        <div id="countdown">${countdown}</div>
+      `;
+      const interval = setInterval(() => {
+        countdown--;
+        document.getElementById('countdown').innerText = countdown;
+        if (countdown === 0) {
+          clearInterval(interval);
+          showButtons();
+        }
+      }, 1000);
+    }
+
+    function showButtons() {
+      const gameArea = document.getElementById('game-area');
+      gameArea.innerHTML = `
+        <h3>依照剛剛的順序點擊：</h3>
+        <div>
+          ${parts.map(p => `<button class="answer-btn" onclick="selectPart('${p}')">${p}</button>`).join('')}
+        </div>
+      `;
+    }
+
+    function selectPart(part) {
+      clickSound.currentTime = 0;
+      clickSound.play();
+      userSequence.push(part);
+      document.getElementById('user-progress').innerText = '你目前的輸入：' + userSequence.join(' → ');
+      if (userSequence.length === pattern.length) {
+        if (JSON.stringify(userSequence) === JSON.stringify(pattern)) {
+          successSound.play();
+          if (level === 10) {
+            setTimeout(() => showCelebration(), 300);
+          } else {
+            setTimeout(() => {
+              alert(`🎉 第 ${level} 關完成！挑戰繼續～`);
+              level++;
+              nextLevel();
+            }, 300);
+          }
+        } else {
+          failSound.play();
+          setTimeout(() => {
+            alert('😵 順序錯啦，從第一關重新開始！');
+            startGame();
+          }, 300);
+        }
+      }
+    }
+
+    function showCelebration() {
+      document.getElementById('game-area').innerHTML = '';
+      document.getElementById('user-progress').innerText = '';
+      const celebration = document.getElementById('celebration');
+      celebration.style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('gift-link').style.display = 'block';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
