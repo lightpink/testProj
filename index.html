@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>按摩券挑戰：通關才能享受放鬆！</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>按摩大挑戰！</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500&display=swap" rel="stylesheet"/>
   <style>
     body {
       font-family: 'Noto Sans TC', sans-serif;
@@ -23,15 +23,8 @@
       box-shadow: 0 8px 16px rgba(0,0,0,0.1);
       transition: all 0.5s ease-in-out;
     }
-    h1 {
-      font-size: 1.8em;
-      color: #e65100;
-    }
-    .bless {
-      font-size: 1.4em;
-      color: #6d4c41;
-      margin-bottom: 0.8em;
-    }
+    h1 { font-size: 1.8em; color: #e65100; }
+    .bless { font-size: 1.4em; color: #6d4c41; margin-bottom: 0.8em; }
     .btn {
       padding: 1em;
       margin: 0.5em;
@@ -44,14 +37,8 @@
       width: 90%;
       max-width: 300px;
     }
-    .btn:hover {
-      opacity: 0.9;
-    }
-    #gift-link {
-      margin-top: 2em;
-      display: none;
-      animation: fadeIn 1s ease-in-out;
-    }
+    .btn:hover { opacity: 0.9; }
+    #gift-link { margin-top: 2em; display: none; animation: fadeIn 1s ease-in-out; }
     #celebration {
       display: none;
       font-size: 2em;
@@ -76,12 +63,8 @@
       max-width: 150px;
       transition: transform 0.1s ease-in-out;
     }
-    button.answer-btn:active {
-      transform: scale(0.95);
-    }
-    button.answer-btn:hover {
-      background: #43a047;
-    }
+    button.answer-btn:active { transform: scale(0.95); }
+    button.answer-btn:hover { background: #43a047; }
     #user-progress {
       margin-top: 1em;
       font-size: 1.1em;
@@ -103,35 +86,43 @@
   <div id="game-container">
     <div class="bless">梯仔森咖\OAO/</div>
     <h1>🎁 通關才有驚喜按摩券！</h1>
-    <p>共 10 關記憶挑戰，難度逐關提升！</p>
+    <p id="level-info">共 10 關記憶挑戰，難度逐關提升！</p>
     <button class="btn" onclick="startGame()">🔘 開始挑戰</button>
-
     <div id="game-area"></div>
     <div id="user-progress"></div>
     <div id="celebration">🎉 你成功啦！🎉</div>
-
     <div id="gift-link">
       <h2>🎉 恭喜你完成所有挑戰！</h2>
       <p>辛苦啦，該放鬆一下了～</p>
       <a href="https://apps.apple.com/app/id431218690" target="_blank" class="btn">🎟 領取按摩券</a>
     </div>
-    <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/10/03/audio_6d97f2e91c.mp3?filename=relaxing-massage-ambient-117039.mp3" autoplay loop></audio>
+    <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/10/03/audio_6d97f2e91c.mp3?filename=relaxing-massage-ambient-117039.mp3" loop></audio>
     <audio id="click-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3404ba8a03.mp3?filename=click-124467.mp3"></audio>
     <audio id="success-sound" src="https://cdn.pixabay.com/download/audio/2021/10/20/audio_47f5adf97e.mp3?filename=success-1-6297.mp3"></audio>
     <audio id="fail-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_bf69ee9f42.mp3?filename=wrong-126507.mp3"></audio>
   </div>
 
   <script>
-    const parts = ['頭', '肩', '腰', '腳', '手', '背', '眼', '膝', '脖子', '腿'];
-    let level = 1;
-    let pattern = [];
-    let userSequence = [];
+    const parts = ['頭','肩','腰','腳','手','背','眼','膝','脖子','腿'];
+    let level = 1, pattern = [], userSequence = [], maxLevel = 10;
 
+    const bgm = document.getElementById('bgm');
     const clickSound = document.getElementById('click-sound');
     const successSound = document.getElementById('success-sound');
     const failSound = document.getElementById('fail-sound');
 
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
     function startGame() {
+      const paramLevel = parseInt(getQueryParam('g'));
+      if (!isNaN(paramLevel) && paramLevel > 0) {
+        maxLevel = paramLevel;
+        document.getElementById('level-info').innerText = `共 ${maxLevel} 關記憶挑戰，難度逐關提升！`;
+      }
+      bgm.play();
       level = 1;
       nextLevel();
     }
@@ -155,8 +146,7 @@
       gameArea.innerHTML = `
         <h3>請記住順序</h3>
         <p id="pattern-display"><strong>${pattern.join(' → ')}</strong></p>
-        <div id="countdown">${countdown}</div>
-      `;
+        <div id="countdown">${countdown}</div>`;
       const interval = setInterval(() => {
         countdown--;
         document.getElementById('countdown').innerText = countdown;
@@ -171,10 +161,7 @@
       const gameArea = document.getElementById('game-area');
       gameArea.innerHTML = `
         <h3>依照剛剛的順序點擊：</h3>
-        <div>
-          ${parts.map(p => `<button class="answer-btn" onclick="selectPart('${p}')">${p}</button>`).join('')}
-        </div>
-      `;
+        <div>${parts.map(p => `<button class="answer-btn" onclick="selectPart('${p}')">${p}</button>`).join('')}</div>`;
     }
 
     function selectPart(part) {
@@ -185,7 +172,7 @@
       if (userSequence.length === pattern.length) {
         if (JSON.stringify(userSequence) === JSON.stringify(pattern)) {
           successSound.play();
-          if (level === 10) {
+          if (level === maxLevel) {
             setTimeout(() => showCelebration(), 300);
           } else {
             setTimeout(() => {
@@ -207,8 +194,7 @@
     function showCelebration() {
       document.getElementById('game-area').innerHTML = '';
       document.getElementById('user-progress').innerText = '';
-      const celebration = document.getElementById('celebration');
-      celebration.style.display = 'block';
+      document.getElementById('celebration').style.display = 'block';
       setTimeout(() => {
         document.getElementById('gift-link').style.display = 'block';
       }, 2000);
