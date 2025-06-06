@@ -84,6 +84,7 @@
 </head>
 <body>
   <div id="game-container">
+    <img id="landing-image" src="https://cdn.myfunnow.com/imgs/branch/cover%2F20240805-IMG_1524_54b115.jpg" alt="按摩店櫃台" style="width:100%; border-radius: 12px; margin-bottom: 1em;" />
     <div class="bless">梯仔森咖\OAO/</div>
     <h1>🎁 通關才有驚喜按摩券！</h1>
     <p id="level-info">共 10 關記憶挑戰，難度逐關提升！</p>
@@ -122,6 +123,10 @@
         maxLevel = paramLevel;
         document.getElementById('level-info').innerText = `共 ${maxLevel} 關記憶挑戰，難度逐關提升！`;
       }
+
+      const landingImg = document.getElementById('landing-image');
+      if (landingImg) landingImg.style.display = 'none';
+
       bgm.play();
       level = 1;
       nextLevel();
@@ -142,7 +147,8 @@
       userProgress.innerText = '';
       document.getElementById('gift-link').style.display = 'none';
       document.getElementById('celebration').style.display = 'none';
-      let countdown = 5;
+
+      let countdown = parseInt(getQueryParam('t')) || 10;
       gameArea.innerHTML = `
         <h3>請記住順序</h3>
         <p id="pattern-display"><strong>${pattern.join(' → ')}</strong></p>
