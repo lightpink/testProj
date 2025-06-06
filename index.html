@@ -115,6 +115,14 @@
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
+      @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(10px); }
+      100% { transform: translateX(0); }
+    }
   </style>
 </head>
 <body>
@@ -129,7 +137,8 @@
     <div id="celebration">🎉 你成功啦！🎉</div>
     <div id="gift-link">
       <h2>🎉 恭喜你完成所有挑戰！</h2>
-      <p>辛苦啦，該放鬆一下了～</p><br>
+      <p>辛苦啦，該放鬆一下了～</p>
+      <br>
       <a href="https://apps.apple.com/app/id431218690" target="_blank" class="btn">🎟 領取按摩體驗券</a>
       <br>
     </div>
@@ -181,11 +190,13 @@
       userProgress.innerText = '';
       document.getElementById('gift-link').style.display = 'none';
       document.getElementById('celebration').style.display = 'none';
-      let countdown = parseInt(getQueryParam('t')) || 10;
+      let baseTime = parseInt(getQueryParam('t')) || 3;
+      let countdown = level + baseTime;
       gameArea.innerHTML = `
         <h3>請記住順序</h3>
         <p id="pattern-display"><strong>${pattern.join(' → ')}</strong></p>
-        <div id="countdown">${countdown}</div>`;
+        <div id="countdown" style="font-size: 2.4em; animation: popFade 0.5s infinite alternate;">${countdown}</div>
+        <button class="btn" onclick="skipCountdown()">⏩ 跳過倒數</button>`;
       countdownTimer = setInterval(() => {
         countdown--;
         document.getElementById('countdown').innerText = countdown;
@@ -194,6 +205,11 @@
           showButtons();
         }
       }, 1000);
+    }
+
+    function skipCountdown() {
+      clearInterval(countdownTimer);
+      showButtons();
     }
 
     function showButtons() {
@@ -209,7 +225,8 @@
       userSequence.push(part);
       document.getElementById('user-progress').innerText = '你目前的輸入：' + userSequence.join(' → ');
       if (userSequence.length === pattern.length) {
-        if (JSON.stringify(userSequence) === JSON.stringify(pattern)) {
+        const isCorrect = JSON.stringify(userSequence) === JSON.stringify(pattern);
+        if (isCorrect) {
           successSound.play();
           if (level === maxLevel) {
             setTimeout(() => showCelebration(), 300);
@@ -222,6 +239,10 @@
           }
         } else {
           failSound.play();
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          const gameArea = document.getElementById('game-container');
+          gameArea.style.animation = 'shake 0.4s';
+          setTimeout(() => { gameArea.style.animation = ''; }, 500);
           setTimeout(() => {
             alert('😵 順序錯啦，從第一關重新開始！');
             startGame();
