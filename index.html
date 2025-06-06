@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>按摩大挑戰！</title>
+  <title>按摩大挑戰</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <style>
     body {
       font-family: 'Noto Sans TC', sans-serif;
@@ -13,18 +14,29 @@
       color: #333;
       margin: 0;
       padding: 1.5em 1em;
+      overflow-x: hidden;
     }
     #game-container {
       max-width: 480px;
       margin: auto;
-      background: #ffffffcc;
+      background: #ffffffdd;
       padding: 1.5em;
       border-radius: 16px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
       transition: all 0.5s ease-in-out;
+      animation: fadeSlide 0.6s ease-in-out;
     }
-    h1 { font-size: 1.8em; color: #e65100; }
-    .bless { font-size: 1.4em; color: #6d4c41; margin-bottom: 0.8em; }
+    h1 {
+      font-size: 1.9em;
+      color: #e65100;
+      margin-bottom: 0.3em;
+    }
+    .bless {
+      font-size: 1.5em;
+      color: #4e342e;
+      margin-bottom: 1em;
+      animation: fadeIn 2s ease;
+    }
     .btn {
       padding: 1em;
       margin: 0.5em;
@@ -33,12 +45,19 @@
       background: linear-gradient(135deg, #ff9800, #ff5722);
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       width: 90%;
       max-width: 300px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    .btn:hover { opacity: 0.9; }
-    #gift-link { margin-top: 2em; display: none; animation: fadeIn 1s ease-in-out; }
+    .btn:hover {
+      transform: scale(1.02);
+    }
+    #gift-link {
+      margin-top: 2em;
+      display: none;
+      animation: fadeIn 1s ease-in-out;
+    }
     #celebration {
       display: none;
       font-size: 2em;
@@ -46,30 +65,42 @@
       animation: popFade 2s ease-in-out;
     }
     #countdown {
-      font-size: 2em;
-      color: #d84315;
+      font-size: 2.2em;
+      color: #bf360c;
       margin: 1em 0;
       font-weight: bold;
     }
     button.answer-btn {
       margin: 0.3em;
       padding: 0.8em;
-      font-size: 1em;
+      font-size: 1.1em;
       background: #4caf50;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       color: white;
       width: 40%;
       max-width: 150px;
       transition: transform 0.1s ease-in-out;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    button.answer-btn:active { transform: scale(0.95); }
-    button.answer-btn:hover { background: #43a047; }
+    button.answer-btn:active {
+      transform: scale(0.95);
+    }
+    button.answer-btn:hover {
+      background: #43a047;
+    }
     #user-progress {
       margin-top: 1em;
       font-size: 1.1em;
       color: #5d4037;
       font-weight: bold;
+    }
+    #landing-image {
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 1em;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: fadeIn 1.2s ease;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -80,33 +111,36 @@
       50% { opacity: 1; transform: scale(1.2); }
       100% { opacity: 1; transform: scale(1); }
     }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
   <div id="game-container">
-    <img id="landing-image" src="https://cdn.myfunnow.com/imgs/branch/cover%2F20240805-IMG_1524_54b115.jpg" alt="按摩店櫃台" style="width:100%; border-radius: 12px; margin-bottom: 1em;" />
+    <img id="landing-image" src="https://cdn.myfunnow.com/imgs/branch/cover%2F20240805-IMG_1524_54b115.jpg" alt="按摩店櫃台" />
     <div class="bless">梯仔森咖\OAO/</div>
-    <h1>🎁 通關才有驚喜按摩券！</h1>
-    <p id="level-info">共 10 關記憶挑戰，難度逐關提升！</p>
-    <button class="btn" onclick="startGame()">🔘 開始挑戰</button>
+    <h1>🎁 通關取得按摩券！</h1>
+    <p id="level-info"></p>
+    <button id="start-btn" class="btn" onclick="startGame()">🔘 開始挑戰</button>
     <div id="game-area"></div>
     <div id="user-progress"></div>
     <div id="celebration">🎉 你成功啦！🎉</div>
     <div id="gift-link">
       <h2>🎉 恭喜你完成所有挑戰！</h2>
-      <p>辛苦啦，該放鬆一下了～</p>
-      <a href="https://apps.apple.com/app/id431218690" target="_blank" class="btn">🎟 領取按摩券</a>
+      <p>辛苦啦，該放鬆一下了～</p><br>
+      <a href="https://apps.apple.com/app/id431218690" target="_blank" class="btn">🎟 領取按摩體驗券</a>
+      <br>
     </div>
     <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/10/03/audio_6d97f2e91c.mp3?filename=relaxing-massage-ambient-117039.mp3" loop></audio>
     <audio id="click-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3404ba8a03.mp3?filename=click-124467.mp3"></audio>
     <audio id="success-sound" src="https://cdn.pixabay.com/download/audio/2021/10/20/audio_47f5adf97e.mp3?filename=success-1-6297.mp3"></audio>
     <audio id="fail-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_bf69ee9f42.mp3?filename=wrong-126507.mp3"></audio>
   </div>
-
   <script>
     const parts = ['頭','肩','腰','腳','手','背','眼','膝','脖子','腿'];
-    let level = 1, pattern = [], userSequence = [], maxLevel = 10;
-
+    let level = 1, pattern = [], userSequence = [], maxLevel = 10, countdownTimer;
     const bgm = document.getElementById('bgm');
     const clickSound = document.getElementById('click-sound');
     const successSound = document.getElementById('success-sound');
@@ -118,15 +152,15 @@
     }
 
     function startGame() {
+      clearInterval(countdownTimer);
+      document.getElementById('start-btn').innerText = '🔄 重新開始';
       const paramLevel = parseInt(getQueryParam('g'));
       if (!isNaN(paramLevel) && paramLevel > 0) {
         maxLevel = paramLevel;
-        document.getElementById('level-info').innerText = `共 ${maxLevel} 關記憶挑戰，難度逐關提升！`;
       }
-
+      document.getElementById('level-info').innerText = `共 ${maxLevel} 關記憶挑戰，難度逐關提升！`;
       const landingImg = document.getElementById('landing-image');
       if (landingImg) landingImg.style.display = 'none';
-
       bgm.play();
       level = 1;
       nextLevel();
@@ -147,17 +181,16 @@
       userProgress.innerText = '';
       document.getElementById('gift-link').style.display = 'none';
       document.getElementById('celebration').style.display = 'none';
-
       let countdown = parseInt(getQueryParam('t')) || 10;
       gameArea.innerHTML = `
         <h3>請記住順序</h3>
         <p id="pattern-display"><strong>${pattern.join(' → ')}</strong></p>
         <div id="countdown">${countdown}</div>`;
-      const interval = setInterval(() => {
+      countdownTimer = setInterval(() => {
         countdown--;
         document.getElementById('countdown').innerText = countdown;
         if (countdown === 0) {
-          clearInterval(interval);
+          clearInterval(countdownTimer);
           showButtons();
         }
       }, 1000);
@@ -201,6 +234,7 @@
       document.getElementById('game-area').innerHTML = '';
       document.getElementById('user-progress').innerText = '';
       document.getElementById('celebration').style.display = 'block';
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.4 } });
       setTimeout(() => {
         document.getElementById('gift-link').style.display = 'block';
       }, 2000);
