@@ -1,265 +1,261 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>按摩大挑戰</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <title>搬家小物出清</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- SheetJS -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
   <style>
     body {
-      font-family: 'Noto Sans TC', sans-serif;
-      text-align: center;
-      background: linear-gradient(to bottom, #fff3e0, #ffe0b2);
-      color: #333;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif;
+      background: #fafafa;
       margin: 0;
-      padding: 1.5em 1em;
-      overflow-x: hidden;
+      padding: 20px;
     }
-    #game-container {
-      max-width: 480px;
-      margin: auto;
-      background: #ffffffdd;
-      padding: 1.5em;
-      border-radius: 16px;
-      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-      transition: all 0.5s ease-in-out;
-      animation: fadeSlide 0.6s ease-in-out;
-    }
+
     h1 {
-      font-size: 1.9em;
-      color: #e65100;
-      margin-bottom: 0.3em;
+      text-align: center;
+      margin-bottom: 28px;
     }
-    .bless {
-      font-size: 1.5em;
-      color: #4e342e;
-      margin-bottom: 1em;
-      animation: fadeIn 2s ease;
+
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
     }
-    .btn {
-      padding: 1em;
-      margin: 0.5em;
-      font-size: 1.2em;
-      cursor: pointer;
-      background: linear-gradient(135deg, #ff9800, #ff5722);
-      color: white;
-      border: none;
+
+    .item {
+      background: #fff;
       border-radius: 14px;
-      width: 90%;
-      max-width: 300px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 16px rgba(0,0,0,.08);
+      overflow: hidden;
     }
-    .btn:hover {
-      transform: scale(1.02);
+
+    .images {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
     }
-    #gift-link {
-      margin-top: 2em;
-      display: none;
-      animation: fadeIn 1s ease-in-out;
-    }
-    #celebration {
-      display: none;
-      font-size: 2em;
-      color: #d84315;
-      animation: popFade 2s ease-in-out;
-    }
-    #countdown {
-      font-size: 2.2em;
-      color: #bf360c;
-      margin: 1em 0;
-      font-weight: bold;
-    }
-    button.answer-btn {
-      margin: 0.3em;
-      padding: 0.8em;
-      font-size: 1.1em;
-      background: #4caf50;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      width: 40%;
-      max-width: 150px;
-      transition: transform 0.1s ease-in-out;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    button.answer-btn:active {
-      transform: scale(0.95);
-    }
-    button.answer-btn:hover {
-      background: #43a047;
-    }
-    #user-progress {
-      margin-top: 1em;
-      font-size: 1.1em;
-      color: #5d4037;
-      font-weight: bold;
-    }
-    #landing-image {
+
+    .images img {
       width: 100%;
-      border-radius: 12px;
-      margin-bottom: 1em;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: fadeIn 1.2s ease;
+      height: 220px;
+      object-fit: cover;
+      scroll-snap-align: start;
+      flex-shrink: 0;
+      cursor: zoom-in;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .content {
+      padding: 14px 16px 18px;
     }
-    @keyframes popFade {
-      0% { opacity: 0; transform: scale(0.5); }
-      50% { opacity: 1; transform: scale(1.2); }
-      100% { opacity: 1; transform: scale(1); }
+
+    .title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 6px;
     }
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .price {
+      color: #d35400;
+      font-weight: bold;
+      margin-bottom: 8px;
     }
-      @keyframes shake {
-      0% { transform: translateX(0); }
-      20% { transform: translateX(-10px); }
-      40% { transform: translateX(10px); }
-      60% { transform: translateX(-10px); }
-      80% { transform: translateX(10px); }
-      100% { transform: translateX(0); }
+
+    .desc {
+      font-size: 14px;
+      color: #555;
+      white-space: pre-line;
+      line-height: 1.5;
     }
+
+    /* ===== Modal ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      touch-action: none;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal img {
+      max-width: 100%;
+      max-height: 100%;
+      transform-origin: center center;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .close {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      font-size: 28px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px;
+    }
+
+    .nav.left { left: 10px; }
+    .nav.right { right: 10px; }
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <img id="landing-image" src="https://cdn.myfunnow.com/imgs/branch/cover%2F20240805-IMG_1524_54b115.jpg" alt="按摩店櫃台" />
-    <div class="bless">梯仔森咖\OAO/</div>
-    <h1>🎁 通關取得按摩券！</h1>
-    <p id="level-info"></p>
-    <button id="start-btn" class="btn" onclick="startGame()">🔘 開始挑戰</button>
-    <div id="game-area"></div>
-    <div id="user-progress"></div>
-    <div id="celebration">🎉 你成功啦！🎉</div>
-    <div id="gift-link">
-      <h2>🎉 恭喜你完成所有挑戰！</h2>
-      <p>辛苦啦，該放鬆一下了～</p>
-      <br>
-      <a href="https://apps.apple.com/app/id431218690" target="_blank" class="btn">🎟 領取按摩體驗券</a>
-      <br>
-    </div>
-    <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/10/03/audio_6d97f2e91c.mp3?filename=relaxing-massage-ambient-117039.mp3" loop></audio>
-    <audio id="click-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3404ba8a03.mp3?filename=click-124467.mp3"></audio>
-    <audio id="success-sound" src="https://cdn.pixabay.com/download/audio/2021/10/20/audio_47f5adf97e.mp3?filename=success-1-6297.mp3"></audio>
-    <audio id="fail-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_bf69ee9f42.mp3?filename=wrong-126507.mp3"></audio>
-  </div>
-  <script>
-    const parts = ['頭','肩','腰','腳','手','背','眼','膝','脖子','腿'];
-    let level = 1, pattern = [], userSequence = [], maxLevel = 10, countdownTimer;
-    const bgm = document.getElementById('bgm');
-    const clickSound = document.getElementById('click-sound');
-    const successSound = document.getElementById('success-sound');
-    const failSound = document.getElementById('fail-sound');
 
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    }
+<h1>搬家小物出清</h1>
 
-    function startGame() {
-      clearInterval(countdownTimer);
-      document.getElementById('start-btn').innerText = '🔄 重新開始';
-      const paramLevel = parseInt(getQueryParam('g'));
-      if (!isNaN(paramLevel) && paramLevel > 0) {
-        maxLevel = paramLevel;
-      }
-      document.getElementById('level-info').innerText = `共 ${maxLevel} 關記憶挑戰，難度逐關提升！`;
-      const landingImg = document.getElementById('landing-image');
-      if (landingImg) landingImg.style.display = 'none';
-      bgm.play();
-      level = 1;
-      nextLevel();
-    }
+<div id="items" class="items"></div>
 
-    function nextLevel() {
-      userSequence = [];
-      pattern = [];
-      for (let i = 0; i < level + 1; i++) {
-        pattern.push(parts[Math.floor(Math.random() * parts.length)]);
-      }
-      showPatternWithCountdown();
-    }
+<!-- Modal -->
+<div id="modal" class="modal">
+  <div class="close" id="closeBtn">✕</div>
+  <div class="nav left" id="prevBtn">◀</div>
+  <img id="modalImg" />
+  <div class="nav right" id="nextBtn">▶</div>
+</div>
 
-    function showPatternWithCountdown() {
-      const gameArea = document.getElementById('game-area');
-      const userProgress = document.getElementById('user-progress');
-      userProgress.innerText = '';
-      document.getElementById('gift-link').style.display = 'none';
-      document.getElementById('celebration').style.display = 'none';
-      let baseTime = parseInt(getQueryParam('t')) || 3;
-      let countdown = level + baseTime;
-      gameArea.innerHTML = `
-        <h3>請記住順序</h3>
-        <p id="pattern-display"><strong>${pattern.join(' → ')}</strong></p>
-        <div id="countdown" style="font-size: 2.4em; animation: popFade 0.5s infinite alternate;">${countdown}</div>
-        <button class="btn" onclick="skipCountdown()">⏩ 跳過倒數</button>`;
-      countdownTimer = setInterval(() => {
-        countdown--;
-        document.getElementById('countdown').innerText = countdown;
-        if (countdown === 0) {
-          clearInterval(countdownTimer);
-          showButtons();
+<script>
+  const IMAGE_PATH = 'images/';
+  const XLSX_PATH = `data/items.xlsx?v=${Date.now()}`; // ✅ 快取破解
+
+  let currentImages = [];
+  let currentIndex = 0;
+
+  fetch(XLSX_PATH)
+    .then(res => res.arrayBuffer())
+    .then(buffer => {
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      rows.shift();
+
+      const container = document.getElementById('items');
+
+      rows.forEach(row => {
+        if (!row[1]) return;
+        const [_, name, price, desc, ...images] = row;
+        const validImages = images.filter(Boolean);
+
+        const item = document.createElement('div');
+        item.className = 'item';
+
+        if (validImages.length) {
+          const imgBox = document.createElement('div');
+          imgBox.className = 'images';
+
+          validImages.forEach((file, idx) => {
+            const img = document.createElement('img');
+            img.src = IMAGE_PATH + file;
+            img.loading = 'lazy';
+            img.onclick = () => openModal(validImages, idx);
+            imgBox.appendChild(img);
+          });
+
+          item.appendChild(imgBox);
         }
-      }, 1000);
-    }
 
-    function skipCountdown() {
-      clearInterval(countdownTimer);
-      showButtons();
-    }
+        const content = document.createElement('div');
+        content.className = 'content';
 
-    function showButtons() {
-      const gameArea = document.getElementById('game-area');
-      gameArea.innerHTML = `
-        <h3>依照剛剛的順序點擊：</h3>
-        <div>${parts.map(p => `<button class="answer-btn" onclick="selectPart('${p}')">${p}</button>`).join('')}</div>`;
-    }
+        const linkedDesc = (desc || '').replace(
+          /(https?:\/\/[^\s]+)/g,
+          '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+        );
 
-    function selectPart(part) {
-      clickSound.currentTime = 0;
-      clickSound.play();
-      userSequence.push(part);
-      document.getElementById('user-progress').innerText = '你目前的輸入：' + userSequence.join(' → ');
-      if (userSequence.length === pattern.length) {
-        const isCorrect = JSON.stringify(userSequence) === JSON.stringify(pattern);
-        if (isCorrect) {
-          successSound.play();
-          if (level === maxLevel) {
-            setTimeout(() => showCelebration(), 300);
-          } else {
-            setTimeout(() => {
-              alert(`🎉 第 ${level} 關完成！挑戰繼續～`);
-              level++;
-              nextLevel();
-            }, 300);
-          }
-        } else {
-          failSound.play();
-          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-          const gameArea = document.getElementById('game-container');
-          gameArea.style.animation = 'shake 0.4s';
-          setTimeout(() => { gameArea.style.animation = ''; }, 500);
-          setTimeout(() => {
-            alert('😵 順序錯啦，從第一關重新開始！');
-            startGame();
-          }, 300);
-        }
-      }
-    }
+        content.innerHTML = `
+          <div class="title">${name}</div>
+          <div class="price">$${price}</div>
+          <div class="desc">${linkedDesc}</div>
+        `;
 
-    function showCelebration() {
-      document.getElementById('game-area').innerHTML = '';
-      document.getElementById('user-progress').innerText = '';
-      document.getElementById('celebration').style.display = 'block';
-      confetti({ particleCount: 150, spread: 100, origin: { y: 0.4 } });
-      setTimeout(() => {
-        document.getElementById('gift-link').style.display = 'block';
-      }, 2000);
-    }
-  </script>
+        item.appendChild(content);
+        container.appendChild(item);
+      });
+    });
+
+  /* ===== Modal Logic ===== */
+  const modal = document.getElementById('modal');
+  const modalImg = document.getElementById('modalImg');
+  const closeBtn = document.getElementById('closeBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  let scale = 1, posX = 0, posY = 0;
+
+  function openModal(images, index) {
+    currentImages = images;
+    currentIndex = index;
+    showImage();
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function showImage() {
+    modalImg.src = IMAGE_PATH + currentImages[currentIndex];
+    resetTransform();
+  }
+
+  function resetTransform() {
+    scale = 1;
+    posX = posY = 0;
+    applyTransform();
+  }
+
+  function applyTransform() {
+    modalImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+  }
+
+  function closeModal() {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.onclick = closeModal;
+  modal.onclick = e => e.target === modal && closeModal();
+
+  prevBtn.onclick = e => {
+    e.stopPropagation();
+    currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
+    showImage();
+  };
+
+  nextBtn.onclick = e => {
+    e.stopPropagation();
+    currentIndex = (currentIndex + 1) % currentImages.length;
+    showImage();
+  };
+
+  // 滾輪縮放
+  modal.addEventListener('wheel', e => {
+    e.preventDefault();
+    scale += e.deltaY * -0.001;
+    scale = Math.min(Math.max(1, scale), 4);
+    applyTransform();
+  });
+</script>
+
 </body>
 </html>
