@@ -3,10 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>搬家小物出清</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- SheetJS -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -42,7 +39,9 @@
         overflow: hidden;
       }
 
+      /* ===== 卡片圖片區 ===== */
       .images {
+        position: relative;
         display: flex;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
@@ -56,6 +55,22 @@
         scroll-snap-align: start;
         flex-shrink: 0;
         cursor: zoom-in;
+      }
+
+      .dots {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+      }
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
       }
 
       .content {
@@ -90,54 +105,54 @@
         align-items: center;
         justify-content: center;
         z-index: 999;
-        touch-action: none;
       }
 
       .modal.active {
         display: flex;
       }
 
-      .modal img {
+      .modal-img {
         max-width: 100%;
         max-height: 100%;
         transform-origin: center center;
-        cursor: grab;
         user-select: none;
         -webkit-user-drag: none;
       }
 
-      .close {
+      /* 縮圖列 */
+      .thumbs {
         position: absolute;
-        top: 14px;
-        right: 18px;
-        font-size: 28px;
-        color: #fff;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        max-width: 90%;
+      }
+
+      .thumbs img {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 6px;
+        opacity: 0.6;
         cursor: pointer;
+        border: 2px solid transparent;
       }
 
-      .nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 40px;
-        color: #fff;
-        cursor: pointer;
-        user-select: none;
-        padding: 10px;
+      .thumbs img.active {
+        opacity: 1;
+        border-color: #fff;
       }
 
-      .nav.left {
-        left: 10px;
-      }
-      .nav.right {
-        right: 10px;
-      }
-
+      /* 聯絡 */
       .contact {
         position: fixed;
         top: 12px;
         right: 12px;
         z-index: 1000;
+        display: none;
       }
 
       .contact a {
@@ -156,47 +171,45 @@
       .contact img {
         width: 36px;
         height: 36px;
-        object-fit: cover;
         border-radius: 6px;
       }
     </style>
   </head>
+
   <body>
     <div class="contact">
-      <a
-        href="https://line.me/ti/p/yUdJOTMl1s"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img src="./images/line.jpg" alt="Line QR Code" />
+      <a href="https://line.me/ti/p/yUdJOTMl1s" target="_blank">
+        <img src="./images/line.jpg" />
         <span>聯繫我（LINE）</span>
       </a>
     </div>
 
     <h1>搬家小物出清</h1>
-
     <div id="items" class="items"></div>
 
     <!-- Modal -->
     <div id="modal" class="modal">
-      <div class="close" id="closeBtn">✕</div>
-      <div class="nav left" id="prevBtn">◀</div>
-      <img id="modalImg" />
-      <div class="nav right" id="nextBtn">▶</div>
+      <img id="modalImg" class="modal-img" />
+      <div id="thumbs" class="thumbs"></div>
     </div>
 
     <script>
       const IMAGE_PATH = "./images/";
-      const XLSX_PATH = `./data/items.xlsx?v=${Date.now()}`; // ✅ 快取破解
+      const XLSX_PATH = `./data/items.xlsx?v=${Date.now()}`;
 
       let currentImages = [];
       let currentIndex = 0;
+      let scale = 1,
+        posX = 0,
+        posY = 0;
+      let startDist = 0,
+        lastScale = 1;
 
       fetch(XLSX_PATH)
-        .then((res) => res.arrayBuffer())
-        .then((buffer) => {
-          const workbook = XLSX.read(buffer, { type: "array" });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        .then((r) => r.arrayBuffer())
+        .then((buf) => {
+          const wb = XLSX.read(buf, { type: "array" });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
           rows.shift();
 
@@ -205,33 +218,43 @@
           rows.forEach((row) => {
             if (!row[1]) return;
             const [_, name, price, desc, ...images] = row;
-            const validImages = images.filter(Boolean);
+            const imgs = images.filter(Boolean);
 
             const item = document.createElement("div");
             item.className = "item";
 
-            if (validImages.length) {
+            if (imgs.length) {
               const imgBox = document.createElement("div");
               imgBox.className = "images";
 
-              validImages.forEach((file, idx) => {
+              imgs.forEach((f, i) => {
                 const img = document.createElement("img");
-                img.src = IMAGE_PATH + file;
-                img.loading = "lazy";
-                img.onclick = () => openModal(validImages, idx);
+                img.src = IMAGE_PATH + f;
+                img.onclick = () => openModal(imgs, i);
                 imgBox.appendChild(img);
               });
+
+              if (imgs.length > 1) {
+                const dots = document.createElement("div");
+                dots.className = "dots";
+                imgs.forEach(() => {
+                  const d = document.createElement("div");
+                  d.className = "dot";
+                  dots.appendChild(d);
+                });
+                imgBox.appendChild(dots);
+              }
 
               item.appendChild(imgBox);
             }
 
-            const content = document.createElement("div");
-            content.className = "content";
-
             const linkedDesc = (desc || "").replace(
               /(https?:\/\/[^\s]+)/g,
-              '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+              '<a href="$1" target="_blank">$1</a>',
             );
+
+            const content = document.createElement("div");
+            content.className = "content";
 
             content.innerHTML = `
           <div class="title">${name}</div>
@@ -240,31 +263,37 @@
         `;
 
             item.appendChild(content);
+
             container.appendChild(item);
           });
         });
 
-      /* ===== Modal Logic ===== */
       const modal = document.getElementById("modal");
       const modalImg = document.getElementById("modalImg");
-      const closeBtn = document.getElementById("closeBtn");
-      const prevBtn = document.getElementById("prevBtn");
-      const nextBtn = document.getElementById("nextBtn");
-
-      let scale = 1,
-        posX = 0,
-        posY = 0;
+      const thumbs = document.getElementById("thumbs");
 
       function openModal(images, index) {
         currentImages = images;
         currentIndex = index;
-        showImage();
+        renderModal();
         modal.classList.add("active");
         document.body.style.overflow = "hidden";
       }
 
-      function showImage() {
+      function renderModal() {
         modalImg.src = IMAGE_PATH + currentImages[currentIndex];
+        thumbs.innerHTML = "";
+        currentImages.forEach((f, i) => {
+          const t = document.createElement("img");
+          t.src = IMAGE_PATH + f;
+          if (i === currentIndex) t.classList.add("active");
+          t.onclick = (e) => {
+            e.stopPropagation();
+            currentIndex = i;
+            renderModal();
+          };
+          thumbs.appendChild(t);
+        });
         resetTransform();
       }
 
@@ -278,33 +307,40 @@
         modalImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
       }
 
+      modal.onclick = (e) => e.target === modal && closeModal();
+
       function closeModal() {
         modal.classList.remove("active");
         document.body.style.overflow = "";
       }
 
-      closeBtn.onclick = closeModal;
-      modal.onclick = (e) => e.target === modal && closeModal();
-
-      prevBtn.onclick = (e) => {
-        e.stopPropagation();
-        currentIndex =
-          (currentIndex - 1 + currentImages.length) % currentImages.length;
-        showImage();
-      };
-
-      nextBtn.onclick = (e) => {
-        e.stopPropagation();
-        currentIndex = (currentIndex + 1) % currentImages.length;
-        showImage();
-      };
-
-      // 滾輪縮放
+      // 滾輪
       modal.addEventListener("wheel", (e) => {
         e.preventDefault();
-        scale += e.deltaY * -0.001;
-        scale = Math.min(Math.max(1, scale), 4);
+        scale = Math.min(Math.max(1, scale + e.deltaY * -0.001), 4);
         applyTransform();
+      });
+
+      // 手機 pinch
+      modal.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+          startDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY,
+          );
+          lastScale = scale;
+        }
+      });
+
+      modal.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 2) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY,
+          );
+          scale = Math.min(Math.max(1, lastScale * (dist / startDist)), 4);
+          applyTransform();
+        }
       });
     </script>
   </body>
