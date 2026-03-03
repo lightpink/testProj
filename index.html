@@ -212,12 +212,21 @@
           const sheet = wb.Sheets[wb.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
           rows.shift();
+          rows.sort((a, b) => {
+            const aVal = a[0] === "" || a[0] == null ? Infinity : Number(a[0]);
+            const bVal = b[0] === "" || b[0] == null ? Infinity : Number(b[0]);
+            return aVal - bVal;
+          });
 
           const container = document.getElementById("items");
 
           rows.forEach((row) => {
+            
+            // 第一欄為 0 就不顯示
+            if (row[0] === 0 || row[0] === "0") return;
+            
             if (!row[1]) return;
-            const [_, name, price, desc, ...images] = row;
+            const [_, name, price, salePrice, desc, ...images] = row;
             const imgs = images.filter(Boolean);
 
             const item = document.createElement("div");
@@ -256,11 +265,26 @@
             const content = document.createElement("div");
             content.className = "content";
 
+            let priceHTML = "";
+
+            if (salePrice) {
+              priceHTML = `
+                <span class="original-price" style="text-decoration:line-through;color:#888;margin-right:6px;">
+                  $${price}
+                </span>
+                <span style="color:#e74c3c;font-weight:bold;">
+                  $${salePrice}
+                </span>
+              `;
+            } else {
+              priceHTML = `$${price}`;
+            }
+
             content.innerHTML = `
-          <div class="title">${name}</div>
-          <div class="price">$${price}</div>
-          <div class="desc">${linkedDesc}</div>
-        `;
+              <div class="title">${name}</div>
+              <div class="price">${priceHTML}</div>
+              <div class="desc">${linkedDesc}</div>
+            `;
 
             item.appendChild(content);
 
