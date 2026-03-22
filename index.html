@@ -94,6 +94,55 @@
         color: #555;
         white-space: pre-line;
         line-height: 1.5;
+
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        max-height: calc(1.5em * 2.5);
+
+        position: relative;
+        cursor: pointer;
+      }
+
+      /* 展開後 */
+      .desc.expanded {
+        -webkit-line-clamp: unset;
+        max-height: none;
+      }
+
+      /* 漸層 */
+      .desc::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 60%;
+        height: 1.8em;
+        background: linear-gradient(to right, transparent, #fff);
+        pointer-events: none;
+      }
+
+      /* 展開更多文字 */
+      .desc::after {
+        content: "展開更多";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        font-size: 13px;
+        color: #3498db;
+        background: #fff;
+        padding-left: 6px;
+      }
+
+      /* 展開後文字改為 收合 */
+      .desc.expanded::after {
+        content: "收合";
+      }
+
+      /* 展開後不顯示漸層 */
+      .desc.expanded::before {
+        display: none;
       }
 
       /* ===== Modal ===== */
@@ -364,6 +413,12 @@
           );
           scale = Math.min(Math.max(1, lastScale * (dist / startDist)), 4);
           applyTransform();
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("desc")) {
+          e.target.classList.toggle("expanded");
         }
       });
     </script>
